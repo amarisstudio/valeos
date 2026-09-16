@@ -7,6 +7,7 @@ import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeImageSrc, sanitizeUrl } from "../../utils/urls";
+import { getAutoImageSize } from "../lib/imageSize";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import {
@@ -94,10 +95,13 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
+  // ValeOS: images without an explicit size are capped in height so large
+  // photos do not fill the screen. An explicit size always wins.
+  const autoSize = getAutoImageSize(naturalWidth, naturalHeight);
   const { width, height, handlePointerDown, handleDoubleClick, dragging } =
     useDragResize({
-      width: node.attrs.width ?? naturalWidth,
-      height: node.attrs.height ?? naturalHeight,
+      width: node.attrs.width ?? autoSize.width,
+      height: node.attrs.height ?? autoSize.height,
       naturalWidth,
       naturalHeight,
       onChangeSize,
