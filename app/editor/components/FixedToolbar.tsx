@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { buildSelectionContext } from "@shared/editor/lib/buildSelectionContext";
 import { depths, s } from "@shared/styles";
-import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useMobile from "~/hooks/useMobile";
 import fixedToolbarMenuItems from "../menus/fixedToolbar";
@@ -74,7 +73,7 @@ export function FixedToolbar(props: Props) {
 
 const Bar = styled.div`
   position: fixed;
-  top: ${HEADER_HEIGHT + 8}px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: ${depths.editorToolbar};
