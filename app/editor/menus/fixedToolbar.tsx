@@ -2,8 +2,10 @@ import {
   BlockQuoteIcon,
   BoldIcon,
   BulletedListIcon,
+  CaretDownIcon,
   Heading1Icon,
   Heading2Icon,
+  Heading3Icon,
   HighlightIcon,
   ItalicIcon,
   LinkIcon,
@@ -12,6 +14,7 @@ import {
   TodoListIcon,
 } from "outline-icons";
 import { t } from "i18next";
+import type { EditorState } from "prosemirror-state";
 import { isListActive } from "@shared/editor/queries/isListActive";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -23,9 +26,88 @@ import {
 import { metaDisplay } from "@shared/utils/keyboard";
 
 /**
+ * Returns the block type choices for the fixed toolbar's dropdown, Notion
+ * style: one menu that both names the current block and converts it.
+ *
+ * @param ctx - the current selection context.
+ * @returns an array of menu items.
+ */
+function blockTypeItems(ctx: SelectionContext): MenuItem[] {
+  const { schema } = ctx;
+
+  return [
+    {
+      name: "paragraph",
+      group: MenuItemGroup.block,
+      label: t("Text"),
+      icon: <BlockQuoteIcon style={{ visibility: "hidden" }} />,
+      active: (state: EditorState) =>
+        isNodeActive(schema.nodes.paragraph)(state) &&
+        !isListActive(schema.nodes.bullet_list)(state) &&
+        !isListActive(schema.nodes.ordered_list)(state) &&
+        !isListActive(schema.nodes.checkbox_list)(state) &&
+        !isNodeActive(schema.nodes.blockquote)(state),
+    },
+    {
+      name: "heading",
+      group: MenuItemGroup.block,
+      label: t("Heading"),
+      icon: <Heading1Icon />,
+      attrs: { level: 1 },
+      active: isNodeActive(schema.nodes.heading, { level: 1 }),
+    },
+    {
+      name: "heading",
+      group: MenuItemGroup.block,
+      label: t("Subheading"),
+      icon: <Heading2Icon />,
+      attrs: { level: 2 },
+      active: isNodeActive(schema.nodes.heading, { level: 2 }),
+    },
+    {
+      name: "heading",
+      group: MenuItemGroup.block,
+      label: t("Small heading"),
+      icon: <Heading3Icon />,
+      attrs: { level: 3 },
+      active: isNodeActive(schema.nodes.heading, { level: 3 }),
+    },
+    {
+      name: "bullet_list",
+      group: MenuItemGroup.block,
+      label: t("Bulleted list"),
+      icon: <BulletedListIcon />,
+      active: isListActive(schema.nodes.bullet_list),
+    },
+    {
+      name: "ordered_list",
+      group: MenuItemGroup.block,
+      label: t("Ordered list"),
+      icon: <OrderedListIcon />,
+      active: isListActive(schema.nodes.ordered_list),
+    },
+    {
+      name: "checkbox_list",
+      group: MenuItemGroup.block,
+      label: t("Todo list"),
+      icon: <TodoListIcon />,
+      active: isListActive(schema.nodes.checkbox_list),
+    },
+    {
+      name: "blockquote",
+      group: MenuItemGroup.block,
+      label: t("Quote"),
+      icon: <BlockQuoteIcon />,
+      active: isNodeActive(schema.nodes.blockquote),
+    },
+  ];
+}
+
+/**
  * Returns menu items for the always-visible formatting toolbar (a ValeOS
  * addition). A deliberately small set of recognizable controls for people who
- * have never used a markdown editor: no dropdowns, no destructive actions.
+ * have never used a markdown editor: a Notion-style block type dropdown that
+ * names the current block, then inline marks, then link.
  *
  * @param ctx - the current selection context.
  * @returns an array of menu items.
@@ -33,10 +115,23 @@ import { metaDisplay } from "@shared/utils/keyboard";
 export default function fixedToolbarMenuItems(
   ctx: SelectionContext
 ): MenuItem[] {
-  const { schema, isInCodeBlock, isTableCell } = ctx;
+  const { schema, state, isInCodeBlock } = ctx;
   const canFormat = !isInCodeBlock;
 
+  const blockTypes = blockTypeItems(ctx);
+  const current = blockTypes.find((item) => item.active?.(state));
+
   return [
+    {
+      label: current?.label ?? t("Text"),
+      tooltip: t("Change block type"),
+      icon: <CaretDownIcon />,
+      disabled: !canFormat,
+      children: blockTypes,
+    },
+    {
+      name: "separator",
+    },
     {
       name: "strong",
       group: MenuItemGroup.inline,
@@ -77,59 +172,6 @@ export default function fixedToolbarMenuItems(
       name: "separator",
     },
     {
-      name: "heading",
-      group: MenuItemGroup.block,
-      tooltip: t("Heading"),
-      shortcut: `⇧+Ctrl+1`,
-      icon: <Heading1Icon />,
-      active: isNodeActive(schema.nodes.heading, { level: 1 }),
-      attrs: { level: 1 },
-      disabled: !canFormat || isTableCell,
-    },
-    {
-      name: "heading",
-      group: MenuItemGroup.block,
-      tooltip: t("Subheading"),
-      shortcut: `⇧+Ctrl+2`,
-      icon: <Heading2Icon />,
-      active: isNodeActive(schema.nodes.heading, { level: 2 }),
-      attrs: { level: 2 },
-      disabled: !canFormat || isTableCell,
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "bullet_list",
-      group: MenuItemGroup.block,
-      tooltip: t("Bulleted list"),
-      shortcut: `⇧+Ctrl+8`,
-      icon: <BulletedListIcon />,
-      active: isListActive(schema.nodes.bullet_list),
-      disabled: !canFormat || isTableCell,
-    },
-    {
-      name: "ordered_list",
-      group: MenuItemGroup.block,
-      tooltip: t("Ordered list"),
-      shortcut: `⇧+Ctrl+9`,
-      icon: <OrderedListIcon />,
-      active: isListActive(schema.nodes.ordered_list),
-      disabled: !canFormat || isTableCell,
-    },
-    {
-      name: "checkbox_list",
-      group: MenuItemGroup.block,
-      tooltip: t("Todo list"),
-      shortcut: `⇧+Ctrl+7`,
-      icon: <TodoListIcon />,
-      active: isListActive(schema.nodes.checkbox_list),
-      disabled: !canFormat || isTableCell,
-    },
-    {
-      name: "separator",
-    },
-    {
       name: "addLink",
       group: MenuItemGroup.inline,
       tooltip: t("Create link"),
@@ -138,15 +180,6 @@ export default function fixedToolbarMenuItems(
       attrs: { href: "" },
       active: isMarkActive(schema.marks.link),
       disabled: !canFormat || ctx.isEmpty,
-    },
-    {
-      name: "blockquote",
-      group: MenuItemGroup.block,
-      tooltip: t("Quote"),
-      shortcut: `${metaDisplay}+]`,
-      icon: <BlockQuoteIcon />,
-      active: isNodeActive(schema.nodes.blockquote),
-      disabled: !canFormat || isTableCell,
     },
   ];
 }

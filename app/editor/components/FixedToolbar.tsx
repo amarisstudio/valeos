@@ -52,7 +52,10 @@ export function FixedToolbar(props: Props) {
 
   let items = fixedToolbarMenuItems(ctx);
   items = items.filter(
-    (item) => item.name === "separator" || (item.name && commands[item.name])
+    (item) =>
+      item.name === "separator" ||
+      item.children ||
+      (item.name && commands[item.name])
   );
 
   if (!items.length) {
