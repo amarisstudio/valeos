@@ -5,6 +5,7 @@ import type {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import deleteEmptyFirstParagraph from "../commands/deleteEmptyFirstParagraph";
+import { setTextAlign } from "../commands/setTextAlign";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -18,6 +19,13 @@ export default class Paragraph extends Node {
     return {
       content: "inline*",
       group: "block",
+      attrs: {
+        // ValeOS: optional text alignment, null for the default.
+        align: {
+          default: null,
+          validate: "string|null",
+        },
+      },
       parseDOM: [
         {
           tag: "p",
@@ -31,11 +39,20 @@ export default class Paragraph extends Node {
               return false;
             }
 
-            return {};
+            const align = dom.style.textAlign;
+            return {
+              align: align === "center" || align === "right" ? align : null,
+            };
           },
         },
       ],
-      toDOM: () => ["p", { dir: "auto" }, 0],
+      toDOM: (node) => [
+        "p",
+        node.attrs.align
+          ? { dir: "auto", style: `text-align: ${node.attrs.align}` }
+          : { dir: "auto" },
+        0,
+      ],
     };
   }
 
@@ -47,7 +64,12 @@ export default class Paragraph extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return () => setBlockType(type);
+    return {
+      paragraph: () => setBlockType(type),
+      // ValeOS: alignment for paragraphs and headings.
+      align: (attrs?: Record<string, unknown>) =>
+        setTextAlign(typeof attrs?.align === "string" ? attrs.align : null),
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

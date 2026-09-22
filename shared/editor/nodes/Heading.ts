@@ -80,6 +80,11 @@ export default class Heading extends Node<HeadingOptions> {
         collapsed: {
           default: undefined,
         },
+        // ValeOS: optional text alignment, null for the default.
+        align: {
+          default: null,
+          validate: "string|null",
+        },
       },
       content: "inline*",
       group: "block",
@@ -93,10 +98,16 @@ export default class Heading extends Node<HeadingOptions> {
         // A level outside of the range produces an invalid tag name, which
         // would stop the document rendering.
         `h${toLevel(node.attrs.level) + (this.options.offset || 0)}`,
-        {
-          dir: "auto",
-          class: "heading-content",
-        },
+        node.attrs.align
+          ? {
+              dir: "auto",
+              class: "heading-content",
+              style: `text-align: ${node.attrs.align}`,
+            }
+          : {
+              dir: "auto",
+              class: "heading-content",
+            },
         0,
       ],
     };

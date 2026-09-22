@@ -1,4 +1,7 @@
 import {
+  AlignCenterIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
   BoldIcon,
   CodeIcon,
   Heading1Icon,
@@ -92,6 +95,10 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
     : getMarksBetween(state.selection.from, state.selection.to, state).find(
         ({ mark }) => mark.type === schema.marks.text_color
       )?.mark;
+
+  // The alignment of the block the cursor sits in (paragraph or heading).
+  const currentAlign: string | null =
+    (state.selection.$from.parent.attrs.align as string | undefined) || null;
 
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
@@ -511,6 +518,43 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
                 ),
             },
           ],
+        },
+      ],
+    },
+    {
+      group: MenuItemGroup.block,
+      tooltip: t("Align"),
+      icon:
+        currentAlign === "center" ? (
+          <AlignCenterIcon />
+        ) : currentAlign === "right" ? (
+          <AlignRightIcon />
+        ) : (
+          <AlignLeftIcon />
+        ),
+      active: () => !!currentAlign,
+      visible: canFormat && !isTableCell,
+      children: (): MenuItem[] => [
+        {
+          name: "align",
+          label: t("Left"),
+          icon: <AlignLeftIcon />,
+          active: () => !currentAlign,
+          attrs: { align: null },
+        },
+        {
+          name: "align",
+          label: t("Center"),
+          icon: <AlignCenterIcon />,
+          active: () => currentAlign === "center",
+          attrs: { align: "center" },
+        },
+        {
+          name: "align",
+          label: t("Right"),
+          icon: <AlignRightIcon />,
+          active: () => currentAlign === "right",
+          attrs: { align: "right" },
         },
       ],
     },
