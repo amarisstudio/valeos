@@ -40,7 +40,12 @@ function blockTypeItems(ctx: SelectionContext): MenuItem[] {
       name: "paragraph",
       group: MenuItemGroup.block,
       label: t("Text"),
-      icon: <BlockQuoteIcon style={{ visibility: "hidden" }} />,
+      // An invisible icon keeps the "Text" row's label aligned with the rest.
+      icon: (
+        <span style={{ visibility: "hidden", display: "inline-flex" }}>
+          <BlockQuoteIcon />
+        </span>
+      ),
       active: (state: EditorState) =>
         isNodeActive(schema.nodes.paragraph)(state) &&
         !isListActive(schema.nodes.bullet_list)(state) &&
