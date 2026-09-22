@@ -6,6 +6,7 @@ import DiagramsExtension from "@shared/editor/extensions/Diagrams";
 import DocumentMenuExtension from "~/editor/extensions/DocumentMenu";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
+import FixedToolbarExtension from "~/editor/extensions/FixedToolbar";
 import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
 import Keys from "~/editor/extensions/Keys";
 import MentionMenuExtension from "~/editor/extensions/MentionMenu";
@@ -28,6 +29,7 @@ export const withUIExtensions = (nodes: Nodes) => [
   FindAndReplaceExtension,
   HoverPreviewsExtension,
   SelectionToolbarExtension,
+  FixedToolbarExtension,
   CommentGutterExtension,
   DiagramsExtension,
   // Order these default key handlers last
