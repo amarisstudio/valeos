@@ -51,6 +51,8 @@ import {
 import type { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
+import TextColor from "@shared/editor/marks/TextColor";
+import TextColorPicker from "../components/TextColorPicker";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 /**
@@ -80,6 +82,15 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
       )
     : getMarksBetween(state.selection.from, state.selection.to, state).find(
         ({ mark }) => mark.type === schema.marks.highlight
+      )?.mark;
+
+  // Same cursor-versus-selection logic as highlight, for the text color mark.
+  const textColor = isEmpty
+    ? (state.storedMarks || state.selection.$from.marks()).find(
+        (mark) => mark.type === schema.marks.text_color
+      )
+    : getMarksBetween(state.selection.from, state.selection.to, state).find(
+        ({ mark }) => mark.type === schema.marks.text_color
       )?.mark;
 
   const cellSelectionHasBackground = isTableCell
@@ -452,6 +463,56 @@ export default function formattingMenuItems(ctx: SelectionContext): MenuItem[] {
           },
         ];
       },
+    },
+    {
+      group: MenuItemGroup.inline,
+      tooltip: t("Text color"),
+      icon: textColor?.attrs.color ? (
+        <CircleIcon color={textColor.attrs.color} />
+      ) : (
+        <PaletteIcon />
+      ),
+      active: () => !!textColor,
+      visible: !isInCode && !isTableCell,
+      children: (): MenuItem[] => [
+        ...(textColor
+          ? [
+              {
+                name: "text_color",
+                label: t("None"),
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                active: () => false,
+                attrs: { color: textColor.attrs.color },
+              },
+            ]
+          : []),
+        ...TextColor.presetColors.map((preset) => ({
+          name: "text_color",
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: isMarkActive(schema.marks.text_color, { color: preset.hex }),
+          attrs: { color: preset.hex },
+        })),
+        {
+          icon: <CircleIcon retainColor color="rainbow" />,
+          label: "Custom",
+          children: [
+            {
+              content: (
+                <TextColorPicker
+                  activeColor={
+                    textColor?.attrs.color || TextColor.presetColors[0].hex
+                  }
+                />
+              ),
+              preventCloseCondition: () =>
+                !!document.activeElement?.matches(
+                  ".ProseMirror.ProseMirror-focused"
+                ),
+            },
+          ],
+        },
+      ],
     },
     {
       name: "code_inline",
