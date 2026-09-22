@@ -1,0 +1,9 @@
+{
+  "name": "valeos-mail-bridge",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "mailparser": "^3.7.1",
+    "smtp-server": "^3.13.6"
+  }
+}
