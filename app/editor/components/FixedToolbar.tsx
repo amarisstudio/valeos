@@ -28,6 +28,19 @@ export function FixedToolbar(props: Props) {
   const { view, commands } = useEditor();
   const isMobile = useMobile();
 
+  // Center the bar over the editor column rather than the viewport, which the
+  // sidebar would otherwise skew. Window resizes move the column.
+  const [center, setCenter] = React.useState<number>();
+  React.useLayoutEffect(() => {
+    const measure = () => {
+      const rect = view.dom.getBoundingClientRect();
+      setCenter(rect.left + rect.width / 2);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [view]);
+
   if (readOnly || isMobile) {
     return null;
   }
@@ -49,7 +62,10 @@ export function FixedToolbar(props: Props) {
 
   return (
     <Portal>
-      <Bar dir={rtl ? "rtl" : "ltr"}>
+      <Bar
+        dir={rtl ? "rtl" : "ltr"}
+        style={center === undefined ? undefined : { left: center }}
+      >
         <ToolbarMenu items={items} />
       </Bar>
     </Portal>

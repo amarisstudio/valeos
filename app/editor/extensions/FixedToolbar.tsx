@@ -1,5 +1,4 @@
 import { action, makeObservable, observable } from "mobx";
-import { observer } from "mobx-react";
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
@@ -39,9 +38,10 @@ export default class FixedToolbarExtension extends Extension {
     this.version += 1;
   });
 
-  widget = observer((props: WidgetProps) => {
-    // Read the observable so the widget re-renders on each transaction.
+  widget = (props: WidgetProps) => {
+    // Read the observable so the editor's observer render re-runs the widget
+    // on each transaction.
     void this.version;
     return <FixedToolbar rtl={props.rtl} readOnly={props.readOnly} />;
-  });
+  };
 }
