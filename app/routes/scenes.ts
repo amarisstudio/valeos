@@ -12,6 +12,10 @@ export const Drafts = lazy(() => import("~/scenes/Drafts"));
 export const Home = lazy(() => import("~/scenes/Home"));
 export const Search = lazy(() => import("~/scenes/Search"));
 export const Trash = lazy(() => import("~/scenes/Trash"));
+// ValeOS: Goals (OKRs) scene lives in its plugin.
+export const Goals = lazy(
+  () => import("../../plugins/valeos-goals/client/scenes/Goals")
+);
 
 /**
  * Warms the chunks required to render a document with an editable editor. Each

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+import { SearchIcon, HomeIcon, SidebarIcon, TargetIcon } from "outline-icons";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   DragActiveProvider,
@@ -136,6 +136,16 @@ function AppSidebar() {
               onClick={handleSearchClick}
               onClickIntent={Scenes.Search.preload}
             />
+            {/* ValeOS: Goals (OKRs) from plugins/valeos-goals. */}
+            {!user.isGuest && (
+              <SidebarLink
+                to="/goals"
+                icon={<TargetIcon />}
+                label={t("Goals")}
+                exact={false}
+                onClickIntent={Scenes.Goals.preload}
+              />
+            )}
             {can.createDocument && <DraftsLink />}
           </Section>
         </Overflow>

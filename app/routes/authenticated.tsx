@@ -92,6 +92,12 @@ function AuthenticatedRoutes() {
                 path={`${homePath()}/:tab?`}
                 component={Scenes.Home.Component}
               />
+              {/* ValeOS: Goals (OKRs), see plugins/valeos-goals. */}
+              <Route
+                exact
+                path="/goals/:cycleId?"
+                component={Scenes.Goals.Component}
+              />
               <Redirect from="/dashboard" to={homePath()} />
               <Redirect exact from="/starred" to={homePath()} />
               <Redirect
